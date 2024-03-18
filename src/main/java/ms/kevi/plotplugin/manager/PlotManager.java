@@ -29,7 +29,6 @@ import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.math.Vector3;
-import cn.nukkit.registry.Registries;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.ConfigSection;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -45,6 +44,7 @@ import ms.kevi.plotplugin.util.async.TaskExecutor;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Kevims KCodeYT
@@ -85,7 +85,8 @@ public class PlotManager {
             new Config(settingsFile, Config.YAML, new ConfigSection(levelSettings.toMap())).save();
         }
         final Config settingsConfig = new Config(settingsFile, Config.YAML);
-        this.plots = new HashMap<>();
+        this.plots = new ConcurrentHashMap<>();
+
         if (loadPlots) {
             for (Plot plot : this.plugin.getDatabase().getPlots(this))
                 this.plots.put(plot.getId(), plot);
@@ -93,7 +94,6 @@ public class PlotManager {
             for (Plot plot : this.plots.values())
                 plot.recalculateOrigin();
         }
-
         this.levelSettings = levelSettings;
         this.levelSettings.fromMap(settingsConfig.getAll());
     }
@@ -436,9 +436,9 @@ public class PlotManager {
     }
 
     private void finishPlotUnlinkFromNeighbors(Plot centerPlot) {
-        final BlockState claimBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getClaimPlotBlockId()).getBlockState(this.levelSettings.getClaimPlotBlockMeta());
-        final BlockState wallBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getWallPlotBlockId()).getBlockState(this.levelSettings.getWallPlotBlockMeta());
-        final BlockState wallFillingBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getWallFillingBlockId()).getBlockState(this.levelSettings.getWallFillingBlockMeta());
+        final BlockState claimBlock = this.levelSettings.getClaimPlotState();
+        final BlockState wallBlock = this.levelSettings.getWallPlotState();
+        final BlockState wallFillingBlock = this.levelSettings.getWallFillingState();
 
         final Set<Plot> plots = new HashSet<>(Collections.singleton(centerPlot));
         {
@@ -463,9 +463,9 @@ public class PlotManager {
     }
 
     private void finishPlotUnlinkFromAll(Set<Plot> plots) {
-        final BlockState claimBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getClaimPlotBlockId()).getBlockState(this.levelSettings.getClaimPlotBlockMeta());
-        final BlockState wallBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getWallPlotBlockId()).getBlockState(this.levelSettings.getWallPlotBlockMeta());
-        final BlockState wallFillingBlock = Registries.BLOCK.getBlockProperties(this.levelSettings.getWallFillingBlockId()).getBlockState(this.levelSettings.getWallFillingBlockMeta());
+        final BlockState claimBlock = this.levelSettings.getClaimPlotState();
+        final BlockState wallBlock = this.levelSettings.getWallPlotState();
+        final BlockState wallFillingBlock = this.levelSettings.getWallFillingState();
 
         for (Plot plot : plots) {
             for (int iDir = 0; iDir < 4; iDir++)
