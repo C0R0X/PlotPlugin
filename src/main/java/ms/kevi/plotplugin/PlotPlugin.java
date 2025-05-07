@@ -247,9 +247,16 @@ public class PlotPlugin extends PluginBase {
                 this.plotManagerMap.put(levelName, plotManager);
 
                 if (!server.isLevelLoaded(levelName)) {
-                    LevelConfig.GeneratorConfig plot = new LevelConfig.GeneratorConfig("plot", ThreadLocalRandom.current().nextLong(),
-                            DimensionEnum.OVERWORLD.getDimensionData(), Collections.emptyMap());
-                    LevelConfig levelConfig = new LevelConfig("leveldb", Map.of(0, plot));
+                    LevelConfig.GeneratorConfig plot = new LevelConfig.GeneratorConfig(
+                            "plot",
+                            ThreadLocalRandom.current().nextLong(),
+                            false,
+                            LevelConfig.AntiXrayMode.LOW,
+                            false,
+                            DimensionEnum.OVERWORLD.getDimensionData(),
+                            Collections.emptyMap()
+                    );
+                    LevelConfig levelConfig = new LevelConfig("leveldb", true, Map.of(0, plot));
                     server.generateLevel(levelName, levelConfig);
                 }
 
@@ -319,9 +326,16 @@ public class PlotPlugin extends PluginBase {
         this.plotManagerMap.put(levelName, plotManager);
 
         int dimension = levelSettings.getDimension();
-        LevelConfig.GeneratorConfig plot = new LevelConfig.GeneratorConfig("plot", ThreadLocalRandom.current().nextLong(),
-                DimensionEnum.getDataFromId(dimension), Collections.emptyMap());
-        LevelConfig levelConfig = new LevelConfig("leveldb", Map.of(dimension, plot));
+        LevelConfig.GeneratorConfig plot = new LevelConfig.GeneratorConfig(
+                "plot",
+                ThreadLocalRandom.current().nextLong(),
+                false,
+                LevelConfig.AntiXrayMode.LOW,
+                false,
+                DimensionEnum.getDataFromId(dimension),
+                Collections.emptyMap()
+        );
+        LevelConfig levelConfig = new LevelConfig("leveldb", true, Map.of(dimension, plot));
         this.getServer().generateLevel(levelName, levelConfig);
         final Level level = this.getServer().getLevelByName(levelName);
 

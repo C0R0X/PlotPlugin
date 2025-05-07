@@ -34,14 +34,19 @@
             <name>Opencollab Repository snapshots</name>
             <url>https://repo.opencollab.dev/maven-snapshots</url>
         </repository>
+        <repository>
+            <id>PowerNukkitX-releases</id>
+            <name>PowerNukkitX Repository</name>
+            <url>https://repo.powernukkitx.org/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!--Check it out https://jitpack.io/#PowerNukkitX/PowerNukkitX-->
+<!--        Check it out https://jitpack.io/#PowerNukkitX/PowerNukkitX-->
         <dependency>
-            <groupId>com.github.PowerNukkitX</groupId>
-            <artifactId>PowerNukkitX</artifactId>
-            <version>master-SNAPSHOT</version>
+            <groupId>org.powernukkitx</groupId>
+            <artifactId>server</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -81,9 +86,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>17</release>
-                    <source>17</source>
-                    <target>17</target>
+                    <release>21</release>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             <plugin>

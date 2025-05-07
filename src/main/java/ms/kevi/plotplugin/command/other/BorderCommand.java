@@ -17,10 +17,9 @@
 package ms.kevi.plotplugin.command.other;
 
 import cn.nukkit.Player;
-import cn.nukkit.form.element.ElementButton;
-import cn.nukkit.form.element.ElementButtonImageData;
-import cn.nukkit.form.handler.FormResponseHandler;
-import cn.nukkit.form.window.FormWindowSimple;
+import cn.nukkit.form.element.simple.ButtonImage;
+import cn.nukkit.form.element.simple.ElementButton;
+import cn.nukkit.form.window.SimpleForm;
 import ms.kevi.plotplugin.PlotPlugin;
 import ms.kevi.plotplugin.command.PlotCommand;
 import ms.kevi.plotplugin.command.SubCommand;
@@ -29,12 +28,10 @@ import ms.kevi.plotplugin.manager.PlotManager;
 import ms.kevi.plotplugin.util.BlockEntry;
 import ms.kevi.plotplugin.util.Plot;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import static cn.nukkit.form.element.ElementButtonImageData.IMAGE_DATA_TYPE_PATH;
-import static cn.nukkit.form.element.ElementButtonImageData.IMAGE_DATA_TYPE_URL;
 
 /**
  * @author Kevims KCodeYT
@@ -51,24 +48,25 @@ public class BorderCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         final PlotManager plotManager = this.plugin.getPlotManager(player.getLevel());
         final Plot plot;
-        if(plotManager == null || (plot = plotManager.getMergedPlot(player.getFloorX(), player.getFloorZ())) == null) {
+        if (plotManager == null || (plot = plotManager.getMergedPlot(player.getFloorX(), player.getFloorZ())) == null) {
             player.sendMessage(this.translate(player, TranslationKey.NO_PLOT));
             return false;
         }
 
-        if(!player.hasPermission("plot.command.admin.border") && !plot.isOwner(player.getUniqueId())) {
+        if (!player.hasPermission("plot.command.admin.border") && !plot.isOwner(player.getUniqueId())) {
             player.sendMessage(this.translate(player, TranslationKey.NO_PLOT_OWNER));
             return false;
         }
 
-        final FormWindowSimple window = new FormWindowSimple(this.translate(player, TranslationKey.BORDER_FORM_TITLE), "");
+        final SimpleForm window = new SimpleForm(this.translate(player, TranslationKey.BORDER_FORM_TITLE), "");
 
         final Map<ElementButton, BlockEntry> buttons = new HashMap<>();
-        for(BlockEntry entry : this.plugin.getBorderEntries()) {
+        for (BlockEntry entry : this.plugin.getBorderEntries()) {
             final String text;
-            if(entry.isDefault()) {
+            if (entry.isDefault()) {
                 text = this.translate(player, TranslationKey.BORDER_RESET_TO_DEFAULT_BUTTON);
-            } else {
+            }
+            else {
                 final boolean hasPerm = entry.getPermission() == null || player.hasPermission(entry.getPermission());
                 final String permText = this.translate(player, hasPerm ? TranslationKey.BORDER_BUTTON_HAS_PERM : TranslationKey.BORDER_BUTTON_NO_PERM);
 
@@ -76,44 +74,45 @@ public class BorderCommand extends SubCommand {
             }
 
             final String imageType = entry.getImageType();
-            final ElementButtonImageData imageData;
-            switch(imageType == null ? "" : imageType.toLowerCase(Locale.ROOT)) {
-                case "url" -> imageData = new ElementButtonImageData(IMAGE_DATA_TYPE_URL, entry.getImageData());
-                case "path" -> imageData = new ElementButtonImageData(IMAGE_DATA_TYPE_PATH, entry.getImageData());
+            final ButtonImage imageData;
+            switch (imageType == null ? "" : imageType.toLowerCase(Locale.ROOT)) {
+                case "url" -> imageData = new ButtonImage(ButtonImage.Type.URL, entry.getImageData());
+                case "path" -> imageData = new ButtonImage(ButtonImage.Type.PATH, entry.getImageData());
                 default -> imageData = null;
             }
 
             final ElementButton button = new ElementButton(text);
-            if(imageData != null) button.addImage(imageData);
+            if (imageData != null) button.image(imageData);
 
-            window.addButton(button);
+            window.addElement(button);
             buttons.put(button, entry);
         }
 
-        window.addHandler(FormResponseHandler.withoutPlayer(ignored -> {
-            if(!window.wasClosed()) {
-                final ElementButton button = window.getResponse().getClickedButton();
+        window.onSubmit((ignored, response) -> {
+            if (response != null) {
+                final ElementButton button = response.button();
                 final BlockEntry entry;
-                if(button == null || (entry = buttons.get(button)) == null) return;
+                if (button == null || (entry = buttons.get(button)) == null) return;
 
-                if(entry.getPermission() != null && !player.hasPermission(entry.getPermission())) {
+                if (entry.getPermission() != null && !player.hasPermission(entry.getPermission())) {
                     player.sendMessage(this.translate(player, TranslationKey.BORDER_NO_PERMS, entry.getName()));
                     return;
                 }
 
-                if(entry.isDefault()) {
-                    for(Plot mergedPlot : plotManager.getConnectedPlots(plot))
+                if (entry.isDefault()) {
+                    for (Plot mergedPlot : plotManager.getConnectedPlots(plot))
                         plotManager.changeBorder(mergedPlot, plotManager.getLevelSettings().getClaimPlotState());
                     player.sendMessage(this.translate(player, TranslationKey.BORDER_RESET_TO_DEFAULT_SUCCESS));
-                } else {
-                    for(Plot mergedPlot : plotManager.getConnectedPlots(plot))
+                }
+                else {
+                    for (Plot mergedPlot : plotManager.getConnectedPlots(plot))
                         plotManager.changeBorder(mergedPlot, entry.getBlockState());
                     player.sendMessage(this.translate(player, TranslationKey.BORDER_SUCCESS, entry.getName()));
                 }
             }
-        }));
+        });
 
-        player.showFormWindow(window);
+        player.sendForm(window);
         return true;
     }
 

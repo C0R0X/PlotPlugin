@@ -17,9 +17,8 @@
 package ms.kevi.plotplugin.command.defaults;
 
 import cn.nukkit.Player;
-import cn.nukkit.form.element.ElementButton;
-import cn.nukkit.form.handler.FormResponseHandler;
-import cn.nukkit.form.window.FormWindowSimple;
+import cn.nukkit.form.element.simple.ElementButton;
+import cn.nukkit.form.window.SimpleForm;
 import ms.kevi.plotplugin.PlotPlugin;
 import ms.kevi.plotplugin.command.PlotCommand;
 import ms.kevi.plotplugin.command.SubCommand;
@@ -42,22 +41,22 @@ public class TeleportCommand extends SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         final Map<String, PlotManager> plotManagers = this.plugin.getPlotManagerMap();
-        final FormWindowSimple window = new FormWindowSimple(this.translate(player, TranslationKey.TELEPORT_FORM_TITLE), "");
+        final SimpleForm window = new SimpleForm(this.translate(player, TranslationKey.TELEPORT_FORM_TITLE), "");
 
-        for(String levelName : plotManagers.keySet())
-            window.addButton(new ElementButton(levelName));
+        for (String levelName : plotManagers.keySet())
+            window.addElement(new ElementButton(levelName));
 
-        window.addHandler(FormResponseHandler.withoutPlayer(ignored -> {
-            if(!window.wasClosed()) {
-                final PlotManager plotManager = plotManagers.get(window.getResponse().getClickedButton().getText());
-                if(plotManager == null) return;
+        window.onSubmit((ignored, response) -> {
+            if (response != null) {
+                final PlotManager plotManager = plotManagers.get(response.button().text());
+                if (plotManager == null) return;
 
                 player.teleport(plotManager.getLevel().getSpawnLocation());
                 player.sendMessage(this.translate(player, TranslationKey.TELEPORT_SUCCESS, plotManager.getLevel().getFolderPath()));
             }
-        }));
+        });
 
-        player.showFormWindow(window);
+        player.sendForm(window);
         return true;
     }
 
